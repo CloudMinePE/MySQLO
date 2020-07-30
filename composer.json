@@ -1,0 +1,27 @@
+{
+  "name": "xisrapilx/mysqlo",
+  "description": "Make MySQL great!",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "": [
+        "src"
+      ]
+    }
+  },
+  "autoload-dev": {
+    "psr-0": {
+      "": [
+        "example",
+        "generate"
+      ]
+    }
+  },
+  "require": {
+    "ext-mysqli": "*",
+    "ext-pthreads": "*"
+  },
+  "require-dev": {
+    "nette/php-generator": "3.2.0"
+  }
+}
