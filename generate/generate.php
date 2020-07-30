@@ -36,7 +36,7 @@ try{
         /** @var Column[] $result */
         $result = $mysql->prepare("SELECT COLUMNS.IS_NULLABLE, COLUMNS.TABLE_NAME, COLUMNS.COLUMN_NAME, COLUMNS.DATA_TYPE FROM COLUMNS WHERE COLUMNS.TABLE_SCHEMA=':schema' ORDER BY COLUMNS.TABLE_NAME DESC;")
             ->setString("schema", array_shift($argv), false)
-            ->execute(Column::class);
+            ->executeSelectAndMap(Column::class);
 
         function write(Printer $printer, PhpFile $phpFile, string $filename) : void{
             if(!is_dir(__DIR__."/out"))

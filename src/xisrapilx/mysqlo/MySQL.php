@@ -15,7 +15,7 @@ use xisrapilx\mysqlo\exception\QueryException;
 use xisrapilx\mysqlo\result\ResultSet;
 use xisrapilx\mysqlo\statement\NamedPreparedStatement;
 
-class MySQL implements Executable{
+class MySQL{
 
     /** @var mysqli */
     private $mysqli;
@@ -68,6 +68,8 @@ class MySQL implements Executable{
     }
 
     /**
+     * @param string $query
+     * @return int
      * @throws QueryException
      * @see Executable::executeUpdate()
      *
@@ -94,6 +96,8 @@ class MySQL implements Executable{
     /**
      * @see Executable::executeSelect()
      *
+     * @param string $query
+     * @return array
      * @throws QueryException
      */
     public function executeSelect(string $query) : array{
@@ -119,9 +123,11 @@ class MySQL implements Executable{
     }
 
     /**
-     * @throws QueryException
      * @see Executable::executeSelectSingle()
      *
+     * @param string $query
+     * @return ResultSet|null
+     * @throws QueryException
      */
     public function executeSelectSingle(string $query) : ?ResultSet{
         if($this->mysqli !== null){
@@ -145,9 +151,13 @@ class MySQL implements Executable{
     }
 
     /**
-     * @throws QueryException
      * @see Executable::executeSelectAndMap()
      *
+     * @param string $query
+     * @param string $objectToMap
+     * @param string ...$objectsToMap
+     * @return array
+     * @throws QueryException
      */
     public function executeSelectAndMap(string $query, string $objectToMap, string ...$objectsToMap) : array{
         if($this->isConnected()){
@@ -190,9 +200,13 @@ class MySQL implements Executable{
     }
 
     /**
-     * @throws QueryException
      * @see Executable::executeSelectAndMapSingle()
      *
+     * @param string $query
+     * @param string $objectToMap
+     * @param string ...$objectsToMap
+     * @return array|mixed
+     * @throws QueryException
      */
     public function executeSelectAndMapSingle(string $query, string $objectToMap, string ...$objectsToMap){
         if($this->isConnected()){

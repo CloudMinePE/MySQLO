@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace xisrapilx\mysqlo\statement;
 
 use xisrapilx\mysqlo\exception\QueryException;
-use xisrapilx\mysqlo\Executable;
 use xisrapilx\mysqlo\result\ResultSet;
 
 abstract class ExecutableStatement extends Statement implements Executable{
@@ -13,45 +12,40 @@ abstract class ExecutableStatement extends Statement implements Executable{
     /**
      * @throws QueryException
      * @see Executable::executeUpdate()
-     *
      */
-    public function executeUpdate(string $query) : int{
-        return $this->connection->executeUpdate($query);
+    public function executeUpdate() : int{
+        return $this->connection->executeUpdate($this->getFinalQuery());
     }
 
     /**
      * @throws QueryException
      * @see Executable::executeSelect()
-     *
      */
-    public function executeSelect(string $query) : array{
-        return $this->connection->executeSelect($query);
+    public function executeSelect() : array{
+        return $this->connection->executeSelect($this->getFinalQuery());
     }
 
     /**
      * @throws QueryException
      * @see Executable::executeSelectSingle()
-     *
      */
-    public function executeSelectSingle(string $query) : ?ResultSet{
-        return $this->connection->executeSelectSingle($query);
+    public function executeSelectSingle() : ?ResultSet{
+        return $this->connection->executeSelectSingle($this->getFinalQuery());
     }
 
     /**
      * @throws QueryException
      * @see Executable::executeSelectAndMap()
-     *
      */
-    public function executeSelectAndMap(string $query, string $objectToMap, string ...$objectsToMap) : array{
-        return $this->connection->executeSelectAndMap($query, $objectToMap, ...$objectsToMap);
+    public function executeSelectAndMap(string $objectToMap, string ...$objectsToMap) : array{
+        return $this->connection->executeSelectAndMap($this->getFinalQuery(), $objectToMap, ...$objectsToMap);
     }
 
     /**
      * @throws QueryException
      * @see Executable::executeSelectAndMapSingle()
-     *
      */
-    public function executeSelectAndMapSingle(string $query, string $objectToMap, string ...$objectsToMap){
-        return $this->connection->executeSelectAndMapSingle($query, $objectToMap, ...$objectsToMap);
+    public function executeSelectAndMapSingle(string $objectToMap, string ...$objectsToMap){
+        return $this->connection->executeSelectAndMapSingle($this->getFinalQuery(), $objectToMap, ...$objectsToMap);
     }
 }

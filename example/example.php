@@ -34,7 +34,7 @@ try{
         /** @var User[]|Region[] $result */
         $result = $mysql->prepare("SELECT * FROM `stats` LEFT JOIN `regions` ON regions.owner=stats.user LIMIT :limit")
             ->setInt("limit", 1)
-            ->executeSingle(User::class, Region::class);
+            ->executeSelectAndMapSingle(User::class, Region::class);
 
         var_dump($result[0]->getUser(), $result[1]->getOwner());
     }catch(QueryException $exception){
