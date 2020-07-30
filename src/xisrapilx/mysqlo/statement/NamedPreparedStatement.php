@@ -6,7 +6,7 @@ namespace xisrapilx\mysqlo\statement;
 
 use xisrapilx\mysqlo\MySQL;
 
-final class NamedPreparedStatement extends Statement{
+class NamedPreparedStatement extends ExecutableStatement{
 
     /** @var string */
     private $query;

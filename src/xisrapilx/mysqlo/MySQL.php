@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpDocSignatureInspection */
 
 declare(strict_types=1);
 
@@ -15,7 +15,7 @@ use xisrapilx\mysqlo\exception\QueryException;
 use xisrapilx\mysqlo\result\ResultSet;
 use xisrapilx\mysqlo\statement\NamedPreparedStatement;
 
-class MySQL{
+class MySQL implements Executable{
 
     /** @var mysqli */
     private $mysqli;
@@ -68,12 +68,9 @@ class MySQL{
     }
 
     /**
-     * Execute update queries(INSERT, UPDATE, DELETE, CREATE, etc...)
-     *
-     * @param string $query
-     *
-     * @return int
      * @throws QueryException
+     * @see Executable::executeUpdate()
+     *
      */
     public function executeUpdate(string $query) : int{
         if($this->mysqli !== null){
@@ -95,50 +92,21 @@ class MySQL{
     }
 
     /**
-     * @param string $query
-     * @param string $objectToMap
-     * @param string ...$objectsToMap
+     * @see Executable::executeSelect()
      *
-     * @return ResultSet[]|object[]|object[][]
      * @throws QueryException
      */
-    public function execute(string $query, ?string $objectToMap = null, string ...$objectsToMap) : array{
+    public function executeSelect(string $query) : array{
         if($this->mysqli !== null){
             $result = $this->mysqli->query($query);
             if(!$this->mysqli->errno){
-                $resultSet = [];
-                if($objectToMap !== null){
-                    if(!empty($objectsToMap)){
-                        while(($data = $result->fetch_assoc()) !== null){
-                            $mappedObjects = [];
-
-                            $obj = new $objectToMap;
-                            $mappedObjects[] = $obj;
-
-                            $this->entityManager->map($obj, $data);
-                            foreach($objectsToMap as $obj){
-                                $obj = new $obj;
-
-                                $mappedObjects[] = $obj;
-                                $this->entityManager->map($obj, $data);
-                            }
-
-                            $resultSet[] = $mappedObjects;
-                        }
-                    }else{
-                        while(($data = $result->fetch_assoc()) !== null){
-                            $obj = new $objectToMap;
-                            $resultSet[] = $obj;
-
-                            $this->entityManager->map($obj, $data);
-                        }
-                    }
-                }else{
-                    $resultSet = new ResultSet($result->fetch_assoc());
+                $results = [];
+                while(($data = $result->fetch_assoc()) !== null){
+                    $results[] = new ResultSet($data);
                 }
 
                 $result->free();
-                return $resultSet;
+                return $results;
             }else{
                 throw new QueryException(
                     $this->mysqli->error,
@@ -151,43 +119,106 @@ class MySQL{
     }
 
     /**
-     * @param string $query
-     * @param string $objectToMap
-     * @param string ...$objectsToMap
-     *
-     * @return ResultSet|object|object[]
      * @throws QueryException
+     * @see Executable::executeSelectSingle()
+     *
      */
-    public function executeSingle(string $query, string $objectToMap = null, string ...$objectsToMap){
+    public function executeSelectSingle(string $query) : ?ResultSet{
+        if($this->mysqli !== null){
+            $result = $this->mysqli->query($query);
+            if(!$this->mysqli->errno){
+                $data = $result->fetch_assoc();
+                $result->free();
+                if($data !== null)
+                    return new ResultSet($data);
+
+                return null;
+            }else{
+                throw new QueryException(
+                    $this->mysqli->error,
+                    $this->mysqli->errno
+                );
+            }
+        }else{
+            throw new QueryException("No connection!");
+        }
+    }
+
+    /**
+     * @throws QueryException
+     * @see Executable::executeSelectAndMap()
+     *
+     */
+    public function executeSelectAndMap(string $query, string $objectToMap, string ...$objectsToMap) : array{
         if($this->isConnected()){
             $result = $this->mysqli->query($query);
             if(!$this->mysqli->errno){
-                $resultData = null;
-                if($objectToMap !== null){
+                $resultData = [];
+
+                while(($data = $result->fetch_assoc())){
                     if(!empty($objectsToMap)){
-                        $obj = new $objectToMap;
-                        $mappedObjects[] = $obj;
+                        $resultObjects = [];
+                        $resultObjects[] = new $objectToMap;
+                        $this->entityManager->map($resultObjects[0], $data);
+                        foreach($objectsToMap as $object){
+                            $object = new $object;
+                            $this->entityManager->map($object, $data);
 
-                        $data = $result->fetch_assoc();
-                        $this->entityManager->map($obj, $data);
-                        foreach($objectsToMap as $obj){
-                            $obj = new $obj;
-
-                            $mappedObjects[] = $obj;
-                            $this->entityManager->map($obj, $data);
+                            $resultObjects[] = $object;
                         }
 
-                        $resultData = $mappedObjects;
+                        $resultData[] = $resultObjects;
                     }else{
-                        $resultData = new $objectToMap;
-                        $this->entityManager->map($resultData, $result->fetch_assoc());
+                        $object = new $objectToMap;
+                        $this->entityManager->map($object, $data);
+
+                        $resultData[] = $object;
                     }
-                }else{
-                    $resultData = new ResultSet($result->fetch_assoc());
                 }
 
                 $result->free();
                 return $resultData;
+            }else{
+                throw new QueryException(
+                    $this->mysqli->error,
+                    $this->mysqli->errno
+                );
+            }
+        }else{
+            throw new QueryException("No connection!");
+        }
+    }
+
+    /**
+     * @throws QueryException
+     * @see Executable::executeSelectAndMapSingle()
+     *
+     */
+    public function executeSelectAndMapSingle(string $query, string $objectToMap, string ...$objectsToMap){
+        if($this->isConnected()){
+            $result = $this->mysqli->query($query);
+            if(!$this->mysqli->errno){
+                $data = $result->fetch_assoc();
+                $result->free();
+
+                if(!empty($objectsToMap)){
+                    $resultObjects = [];
+                    $resultObjects[] = new $objectToMap;
+                    $this->entityManager->map($resultObjects[0], $data);
+                    foreach($objectsToMap as $object){
+                        $object = new $object;
+                        $this->entityManager->map($object, $data);
+
+                        $resultObjects[] = $object;
+                    }
+
+                    return $resultObjects;
+                }else{
+                    $object = new $objectToMap;
+                    $this->entityManager->map($object, $data);
+
+                    return $object;
+                }
             }else{
                 throw new QueryException(
                     $this->mysqli->error,
