@@ -33,10 +33,10 @@ try{
     try{
         /** @var User[]|Region[] $result */
         $result = $mysql->prepare("SELECT * FROM `stats` LEFT JOIN `regions` ON regions.owner=stats.user LIMIT :limit")
-            ->setInt("limit", 1)
-            ->executeSelectAndMapSingle(User::class, Region::class);
+            ->setInt("limit", 2)
+            ->executeSelectAndMap(User::class, Region::class);
 
-        var_dump($result[0]->getUser(), $result[1]->getOwner());
+        var_dump($result);
     }catch(QueryException $exception){
         echo "Query error!!!".PHP_EOL;
         echo "[".$exception->getCode()."] ".$exception->getMessage();
